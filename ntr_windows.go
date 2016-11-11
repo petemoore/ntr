@@ -10,6 +10,7 @@ var (
 	advapi32 = syscall.NewLazyDLL("advapi32.dll")
 
 	procLsaAddAccountRights = advapi32.NewProc("LsaAddAccountRights")
+	procLsaClose            = advapi32.NewProc("LsaClose")
 	procLsaOpenPolicy       = advapi32.NewProc("LsaOpenPolicy")
 )
 
@@ -33,6 +34,27 @@ type LSAObjectAttributes struct {
 	Attributes               uint32            // ULONG
 	SecurityDescriptor       uintptr           // PVOID
 	SecurityQualityOfService uintptr           // PVOID
+}
+
+// https://msdn.microsoft.com/en-us/library/windows/desktop/ms721787(v=vs.85).aspx
+func LsaClose(
+	objectHandle syscall.Handle, // LSA_HANDLE
+) (err error) {
+	r1, _, e1 := syscall.Syscall(
+		procLsaClose.Addr(),
+		1,
+		uintptr(objectHandle),
+		0,
+		0,
+	)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = error(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
 }
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa378299(v=vs.85).aspx
