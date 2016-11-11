@@ -160,6 +160,11 @@ func LsaAddAccountRights(
 	return
 }
 
+// TODO: https://msdn.microsoft.com/en-us/library/windows/desktop/ms721798(v=vs.85).aspx
+func LsaLookupNames2() (err error) {
+	return
+}
+
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms722492(v=vs.85).aspx
 func LSAUnicodeStringPtrFromStringPtr(s *string) (*LSAUnicodeString, error) {
 	if s == nil {
