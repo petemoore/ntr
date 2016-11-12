@@ -110,12 +110,8 @@ func LsaClose(
 		0,
 		0,
 	)
-	if r1 == 0 {
-		if e1 != 0 {
-			err = error(e1)
-		} else {
-			err = syscall.EINVAL
-		}
+	if r1 != NTSTATUS_SUCCESS {
+		err = fmt.Errorf("Received error %v when calling LsaOpenPolicy: %v", r1, e1)
 	}
 	return
 }
@@ -148,11 +144,7 @@ func LsaOpenPolicy(
 		0,
 	)
 	if r1 != NTSTATUS_SUCCESS {
-		if e1 != 0 {
-			err = error(e1)
-		} else {
-			err = syscall.EINVAL
-		}
+		err = fmt.Errorf("Received error %v when calling LsaOpenPolicy: %v", r1, e1)
 	}
 	return
 }
@@ -174,12 +166,8 @@ func LsaAddAccountRights(
 		0,
 		0,
 	)
-	if r1 == 0 {
-		if e1 != 0 {
-			err = error(e1)
-		} else {
-			err = fmt.Errorf("Received error %v when calling LsaAddAccountRights: %v", r1, e1)
-		}
+	if r1 != NTSTATUS_SUCCESS {
+		err = fmt.Errorf("Received error %v when calling LsaOpenPolicy: %v", r1, e1)
 	}
 	return
 }
