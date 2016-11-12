@@ -173,19 +173,16 @@ func LsaAddAccountRights(
 }
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms722492(v=vs.85).aspx
-func LSAUnicodeStringPtrFromStringPtr(s *string) (*LSAUnicodeString, error) {
-	if s == nil {
-		return nil, nil
-	}
-	utf16, err := syscall.UTF16FromString(*s)
+func LSAUnicodeStringFromString(s string) (LSAUnicodeString, error) {
+	utf16, err := syscall.UTF16FromString(s)
 	if err != nil {
-		return nil, err
+		return LSAUnicodeString{}, err
 	}
 	dwLen := len(utf16)
 	if dwLen > 0x7ffe {
-		return nil, fmt.Errorf("LSA string:\n%v\n\nLSA string too long - it is %v characters, max allowed is 32766.", *s, dwLen)
+		return LSAUnicodeString{}, fmt.Errorf("LSA string:\n%v\n\nLSA string too long - it is %v characters, max allowed is 32766.", s, dwLen)
 	}
-	return &LSAUnicodeString{
+	return LSAUnicodeString{
 		Length:        uint16(2 * dwLen),
 		MaximumLength: uint16(2*dwLen + 2),
 		Buffer:        &utf16[0],
