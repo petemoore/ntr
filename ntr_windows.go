@@ -178,7 +178,7 @@ func LsaAddAccountRights(
 		if e1 != 0 {
 			err = error(e1)
 		} else {
-			err = fmt.Errorf("Received error %v when calling LsaAddAccountRights: %v", r, e)
+			err = fmt.Errorf("Received error %v when calling LsaAddAccountRights: %v", r1, e1)
 		}
 	}
 	return
