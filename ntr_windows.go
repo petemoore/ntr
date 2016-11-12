@@ -5,6 +5,7 @@ package ntr
 
 import (
 	"fmt"
+	"log"
 	"syscall"
 	"unsafe"
 )
@@ -113,6 +114,16 @@ func LsaOpenPolicy(
 	desiredAccess ACCESS_MASK, // ACCESS_MASK
 	policyHandle *syscall.Handle, // PLSA_HANDLE in/out
 ) (err error) {
+	if systemName != nil {
+		log.Printf("System name: %#v", *systemName)
+	}
+	if objectAttributes != nil {
+		log.Printf("Object attributes: %#v", *objectAttributes)
+	}
+	log.Printf("Desired access: %#v", desiredAccess)
+	if policyHandle != nil {
+		log.Printf("Policy handle: %#v", *policyHandle)
+	}
 	r1, _, e1 := syscall.Syscall6(
 		procLsaOpenPolicy.Addr(),
 		4,
