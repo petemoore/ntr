@@ -64,6 +64,19 @@ const (
 		POLICY_AUDIT_LOG_ADMIN |
 		POLICY_SERVER_ADMIN |
 		POLICY_LOOKUP_NAMES
+
+	// See https://msdn.microsoft.com/en-us/library/windows/desktop/ms721859(v=vs.85).aspx#lsa_policy_function_return_values
+	// and https://msdn.microsoft.com/en-us/library/cc704588.aspx
+	NTSTATUS_SUCCESS                = 0x00000000
+	NTSTATUS_ACCESS_DENIED          = 0xC0000022
+	NTSTATUS_INSUFFICIENT_RESOURCES = 0xC000009A
+	NTSTATUS_INTERNAL_DB_ERROR      = 0xC0000158
+	NTSTATUS_INVALID_HANDLE         = 0xC0000008
+	NTSTATUS_INVALID_SERVER_STATE   = 0xC00000DC
+	NTSTATUS_INVALID_PARAMETER      = 0xC000000D
+	NTSTATUS_NO_SUCH_PRIVILEGE      = 0xC0000060
+	NTSTATUS_OBJECT_NAME_NOT_FOUND  = 0xC0000034
+	NTSTATUS_UNSUCCESSFUL           = 0xC0000001
 )
 
 type ACCESS_MASK uint32
@@ -123,7 +136,7 @@ func LsaOpenPolicy(
 		0,
 		0,
 	)
-	if r1 == 0 {
+	if r1 != NTSTATUS_SUCCESS {
 		if e1 != 0 {
 			err = error(e1)
 		} else {
@@ -154,7 +167,7 @@ func LsaAddAccountRights(
 		if e1 != 0 {
 			err = error(e1)
 		} else {
-			err = syscall.EINVAL
+			err = fmt.Errorf("Received error %v when calling LsaAddAccountRights: %v", r, e)
 		}
 	}
 	return
