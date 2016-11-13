@@ -5,6 +5,7 @@ package ntr
 
 import (
 	"fmt"
+	"log"
 	"syscall"
 	"unsafe"
 )
@@ -109,12 +110,8 @@ func LsaClose(
 		0,
 		0,
 	)
-	if r1 == 0 {
-		if e1 != 0 {
-			err = error(e1)
-		} else {
-			err = syscall.EINVAL
-		}
+	if r1 != NTSTATUS_SUCCESS {
+		err = fmt.Errorf("Received error %v when calling LsaOpenPolicy: %v", r1, e1)
 	}
 	return
 }
@@ -126,6 +123,16 @@ func LsaOpenPolicy(
 	desiredAccess ACCESS_MASK, // ACCESS_MASK
 	policyHandle *syscall.Handle, // PLSA_HANDLE in/out
 ) (err error) {
+	if systemName != nil {
+		log.Printf("System name: %#v", *systemName)
+	}
+	if objectAttributes != nil {
+		log.Printf("Object attributes: %#v", *objectAttributes)
+	}
+	log.Printf("Desired access: %#v", desiredAccess)
+	if policyHandle != nil {
+		log.Printf("Policy handle: %#v", *policyHandle)
+	}
 	r1, _, e1 := syscall.Syscall6(
 		procLsaOpenPolicy.Addr(),
 		4,
@@ -137,11 +144,7 @@ func LsaOpenPolicy(
 		0,
 	)
 	if r1 != NTSTATUS_SUCCESS {
-		if e1 != 0 {
-			err = error(e1)
-		} else {
-			err = syscall.EINVAL
-		}
+		err = fmt.Errorf("Received error %v when calling LsaOpenPolicy: %v", r1, e1)
 	}
 	return
 }
@@ -163,12 +166,8 @@ func LsaAddAccountRights(
 		0,
 		0,
 	)
-	if r1 == 0 {
-		if e1 != 0 {
-			err = error(e1)
-		} else {
-			err = fmt.Errorf("Received error %v when calling LsaAddAccountRights: %v", r, e)
-		}
+	if r1 != NTSTATUS_SUCCESS {
+		err = fmt.Errorf("Received error %v when calling LsaOpenPolicy: %v", r1, e1)
 	}
 	return
 }
@@ -182,19 +181,16 @@ func LsaLookupNames2() {
 }
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms722492(v=vs.85).aspx
-func LSAUnicodeStringPtrFromStringPtr(s *string) (*LSAUnicodeString, error) {
-	if s == nil {
-		return nil, nil
-	}
-	utf16, err := syscall.UTF16FromString(*s)
+func LSAUnicodeStringFromString(s string) (LSAUnicodeString, error) {
+	utf16, err := syscall.UTF16FromString(s)
 	if err != nil {
-		return nil, err
+		return LSAUnicodeString{}, err
 	}
 	dwLen := len(utf16)
 	if dwLen > 0x7ffe {
-		return nil, fmt.Errorf("LSA string:\n%v\n\nLSA string too long - it is %v characters, max allowed is 32766.", *s, dwLen)
+		return LSAUnicodeString{}, fmt.Errorf("LSA string:\n%v\n\nLSA string too long - it is %v characters, max allowed is 32766.", s, dwLen)
 	}
-	return &LSAUnicodeString{
+	return LSAUnicodeString{
 		Length:        uint16(2 * dwLen),
 		MaximumLength: uint16(2*dwLen + 2),
 		Buffer:        &utf16[0],
