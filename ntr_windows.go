@@ -80,7 +80,7 @@ const (
 	NTSTATUS_UNSUCCESSFUL           = 0xC0000001
 )
 
-type ACCESS_MASK uint32
+type AccessMask uint32
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms721841(v=vs.85).aspx
 type LSAUnicodeString struct {
@@ -120,7 +120,7 @@ func LsaClose(
 func LsaOpenPolicy(
 	systemName *LSAUnicodeString, // PLSA_UNICODE_STRING
 	objectAttributes *LSAObjectAttributes, // PLSA_OBJECT_ATTRIBUTES
-	desiredAccess ACCESS_MASK, // ACCESS_MASK
+	desiredAccess AccessMask, // AccessMask
 	policyHandle *syscall.Handle, // PLSA_HANDLE in/out
 ) (err error) {
 	if systemName != nil {
