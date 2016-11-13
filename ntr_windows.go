@@ -173,6 +173,14 @@ func LsaAddAccountRights(
 	return
 }
 
+// https://msdn.microsoft.com/en-us/library/windows/desktop/ms721796(v=vs.85).aspx
+func LsaFreeMemory() {
+}
+
+// https://msdn.microsoft.com/en-us/library/windows/desktop/ms721798(v=vs.85).aspx
+func LsaLookupNames2() {
+}
+
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms722492(v=vs.85).aspx
 func LSAUnicodeStringPtrFromStringPtr(s *string) (*LSAUnicodeString, error) {
 	if s == nil {
