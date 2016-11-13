@@ -18,6 +18,8 @@ var (
 	procLsaOpenPolicy       = advapi32.NewProc("LsaOpenPolicy")
 )
 
+type Privilege string
+
 // See https://msdn.microsoft.com/en-us/library/windows/desktop/ms721916(v=vs.85).aspx
 // Values found in https://github.com/Victek/Tomato-RAF/blob/99ea203ea065ce7c79b481ee590938c01e2ff824/release/src/router/samba3/source/include/rpc_lsa.h#L247-L291
 const (
@@ -78,6 +80,43 @@ const (
 	NTSTATUS_NO_SUCH_PRIVILEGE      = 0xC0000060
 	NTSTATUS_OBJECT_NAME_NOT_FOUND  = 0xC0000034
 	NTSTATUS_UNSUCCESSFUL           = 0xC0000001
+
+	// See https://msdn.microsoft.com/en-us/library/windows/desktop/bb530716(v=vs.85).aspx
+	SE_ASSIGNPRIMARYTOKEN_NAME     = Privilege("SeAssignPrimaryTokenPrivilege")
+	SE_AUDIT_NAME                  = Privilege("SeAuditPrivilege")
+	SE_BACKUP_NAME                 = Privilege("SeBackupPrivilege")
+	SE_CHANGE_NOTIFY_NAME          = Privilege("SeChangeNotifyPrivilege")
+	SE_CREATE_GLOBAL_NAME          = Privilege("SeCreateGlobalPrivilege")
+	SE_CREATE_PAGEFILE_NAME        = Privilege("SeCreatePagefilePrivilege")
+	SE_CREATE_PERMANENT_NAME       = Privilege("SeCreatePermanentPrivilege")
+	SE_CREATE_SYMBOLIC_LINK_NAME   = Privilege("SeCreateSymbolicLinkPrivilege")
+	SE_CREATE_TOKEN_NAME           = Privilege("SeCreateTokenPrivilege")
+	SE_DEBUG_NAME                  = Privilege("SeDebugPrivilege")
+	SE_ENABLE_DELEGATION_NAME      = Privilege("SeEnableDelegationPrivilege")
+	SE_IMPERSONATE_NAME            = Privilege("SeImpersonatePrivilege")
+	SE_INC_BASE_PRIORITY_NAME      = Privilege("SeIncreaseBasePriorityPrivilege")
+	SE_INCREASE_QUOTA_NAME         = Privilege("SeIncreaseQuotaPrivilege")
+	SE_INC_WORKING_SET_NAME        = Privilege("SeIncreaseWorkingSetPrivilege")
+	SE_LOAD_DRIVER_NAME            = Privilege("SeLoadDriverPrivilege")
+	SE_LOCK_MEMORY_NAME            = Privilege("SeLockMemoryPrivilege")
+	SE_MACHINE_ACCOUNT_NAME        = Privilege("SeMachineAccountPrivilege")
+	SE_MANAGE_VOLUME_NAME          = Privilege("SeManageVolumePrivilege")
+	SE_PROF_SINGLE_PROCESS_NAME    = Privilege("SeProfileSingleProcessPrivilege")
+	SE_RELABEL_NAME                = Privilege("SeRelabelPrivilege")
+	SE_REMOTE_SHUTDOWN_NAME        = Privilege("SeRemoteShutdownPrivilege")
+	SE_RESTORE_NAME                = Privilege("SeRestorePrivilege")
+	SE_SECURITY_NAME               = Privilege("SeSecurityPrivilege")
+	SE_SHUTDOWN_NAME               = Privilege("SeShutdownPrivilege")
+	SE_SYNC_AGENT_NAME             = Privilege("SeSyncAgentPrivilege")
+	SE_SYSTEM_ENVIRONMENT_NAME     = Privilege("SeSystemEnvironmentPrivilege")
+	SE_SYSTEM_PROFILE_NAME         = Privilege("SeSystemProfilePrivilege")
+	SE_SYSTEMTIME_NAME             = Privilege("SeSystemtimePrivilege")
+	SE_TAKE_OWNERSHIP_NAME         = Privilege("SeTakeOwnershipPrivilege")
+	SE_TCB_NAME                    = Privilege("SeTcbPrivilege")
+	SE_TIME_ZONE_NAME              = Privilege("SeTimeZonePrivilege")
+	SE_TRUSTED_CREDMAN_ACCESS_NAME = Privilege("SeTrustedCredManAccessPrivilege")
+	SE_UNDOCK_NAME                 = Privilege("SeUndockPrivilege")
+	SE_UNSOLICITED_INPUT_NAME      = Privilege("SeUnsolicitedInputPrivilege")
 )
 
 type AccessMask uint32
@@ -200,7 +239,7 @@ func LSAUnicodeStringFromString(s string) (LSAUnicodeString, error) {
 	}, nil
 }
 
-func AddPrivilegesToUser(username string, privileges ...string) (err error) {
+func AddPrivilegesToUser(username string, privileges ...Privilege) (err error) {
 	pmSID, _, _, err := syscall.LookupSID("", username)
 	if err != nil {
 		return fmt.Errorf("Got error looking up SID: %v", err)
@@ -218,7 +257,7 @@ func AddPrivilegesToUser(username string, privileges ...string) (err error) {
 	}()
 	a := []LSAUnicodeString{}
 	for i := range privileges {
-		r, err := LSAUnicodeStringFromString(privileges[i])
+		r, err := LSAUnicodeStringFromString(string(privileges[i]))
 		if err != nil {
 			return fmt.Errorf("Got error interpreting string %v: %v", privileges[i], err)
 		}
