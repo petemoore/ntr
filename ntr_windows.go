@@ -5,7 +5,6 @@ package ntr
 
 import (
 	"fmt"
-	"log"
 	"syscall"
 	"unsafe"
 )
@@ -123,16 +122,6 @@ func LsaOpenPolicy(
 	desiredAccess AccessMask, // AccessMask
 	policyHandle *syscall.Handle, // PLSA_HANDLE in/out
 ) (err error) {
-	if systemName != nil {
-		log.Printf("System name: %#v", *systemName)
-	}
-	if objectAttributes != nil {
-		log.Printf("Object attributes: %#v", *objectAttributes)
-	}
-	log.Printf("Desired access: %#v", desiredAccess)
-	if policyHandle != nil {
-		log.Printf("Policy handle: %#v", *policyHandle)
-	}
 	r1, _, e1 := syscall.Syscall6(
 		procLsaOpenPolicy.Addr(),
 		4,
@@ -156,7 +145,7 @@ func LsaAddAccountRights(
 	userRights *LSAUnicodeString, // PLSA_UNICODE_STRING
 	countOfRights uint32, // ULONG
 ) (err error) {
-	r1, _, e1 := syscall.Syscall6(
+	r1, s1, e1 := syscall.Syscall6(
 		procLsaAddAccountRights.Addr(),
 		4,
 		uintptr(policyHandle),
@@ -167,7 +156,7 @@ func LsaAddAccountRights(
 		0,
 	)
 	if r1 != NTSTATUS_SUCCESS {
-		err = fmt.Errorf("Received error %v when calling LsaOpenPolicy: %v", r1, e1)
+		err = fmt.Errorf("Received error %#v, %#v when calling LsaOpenPolicy: %#v", r1, s1, e1)
 	}
 	return
 }
@@ -191,8 +180,8 @@ func LSAUnicodeStringFromString(s string) (LSAUnicodeString, error) {
 		return LSAUnicodeString{}, fmt.Errorf("LSA string:\n%v\n\nLSA string too long - it is %v characters, max allowed is 32766.", s, dwLen)
 	}
 	return LSAUnicodeString{
-		Length:        uint16(2 * dwLen),
-		MaximumLength: uint16(2*dwLen + 2),
+		Length:        uint16(2*dwLen - 2),
+		MaximumLength: uint16(2 * dwLen),
 		Buffer:        &utf16[0],
 	}, nil
 }
