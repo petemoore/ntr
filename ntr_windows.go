@@ -199,3 +199,34 @@ func LSAUnicodeStringFromString(s string) (LSAUnicodeString, error) {
 		Buffer:        &utf16[0],
 	}, nil
 }
+
+func AddPrivilegesToUser(username string, privileges ...string) (err error) {
+	pmSID, _, _, err := syscall.LookupSID("", username)
+	if err != nil {
+		return fmt.Errorf("Got error looking up SID: %v", err)
+	}
+	h := syscall.Handle(0)
+	err = LsaOpenPolicy(nil, &LSAObjectAttributes{}, POLICY_ALL_ACCESS, &h)
+	if err != nil {
+		return fmt.Errorf("Got error opening policy: %v", err)
+	}
+	defer func() {
+		err := LsaClose(h)
+		if err != nil {
+			fmt.Printf("Could not close handle, got error: %v", err)
+		}
+	}()
+	a := []LSAUnicodeString{}
+	for i := range privileges {
+		r, err := LSAUnicodeStringFromString(privileges[i])
+		if err != nil {
+			return fmt.Errorf("Got error interpreting string %v: %v", privileges[i], err)
+		}
+		a = append(a, r)
+	}
+	err = LsaAddAccountRights(h, pmSID, &a[0], uint32(len(a)))
+	if err != nil {
+		return fmt.Errorf("Got error adding account right: %v", err)
+	}
+	return nil
+}
