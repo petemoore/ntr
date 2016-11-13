@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	err := ntr.AddPrivilegesToUser("GenericWorker", "SeAssignPrimaryTokenPrivilege")
+	err := ntr.AddPrivilegesToUser("GenericWorker", ntr.SE_ASSIGNPRIMARYTOKEN_NAME)
 	if err != nil {
 		log.Fatalf("Hit error: %v", err)
 	}
