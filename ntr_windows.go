@@ -14,6 +14,7 @@ var (
 
 	procLsaAddAccountRights = advapi32.NewProc("LsaAddAccountRights")
 	procLsaClose            = advapi32.NewProc("LsaClose")
+	procLsaFreeMemory       = advapi32.NewProc("LsaFreeMemory")
 	procLsaOpenPolicy       = advapi32.NewProc("LsaOpenPolicy")
 )
 
@@ -145,7 +146,7 @@ func LsaAddAccountRights(
 	userRights *LSAUnicodeString, // PLSA_UNICODE_STRING
 	countOfRights uint32, // ULONG
 ) (err error) {
-	r1, s1, e1 := syscall.Syscall6(
+	r1, _, e1 := syscall.Syscall6(
 		procLsaAddAccountRights.Addr(),
 		4,
 		uintptr(policyHandle),
@@ -156,13 +157,26 @@ func LsaAddAccountRights(
 		0,
 	)
 	if r1 != NTSTATUS_SUCCESS {
-		err = fmt.Errorf("Received error %#v, %#v when calling LsaOpenPolicy: %#v", r1, s1, e1)
+		err = fmt.Errorf("Received error %v when calling LsaOpenPolicy: %v", r1, e1)
 	}
 	return
 }
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms721796(v=vs.85).aspx
-func LsaFreeMemory() {
+func LsaFreeMemory(
+	buffer uintptr, // PVOID
+) (err error) {
+	r1, _, e1 := syscall.Syscall(
+		procLsaFreeMemory.Addr(),
+		1,
+		buffer,
+		0,
+		0,
+	)
+	if r1 != NTSTATUS_SUCCESS {
+		err = fmt.Errorf("Received error %v when calling LsaFreeMemory: %v", r1, e1)
+	}
+	return
 }
 
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms721798(v=vs.85).aspx
