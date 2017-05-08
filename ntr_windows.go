@@ -222,6 +222,14 @@ func LsaFreeMemory(
 func LsaLookupNames2() {
 }
 
+func LSAUnicodeStringMustCompile(s string) LSAUnicodeString {
+	lsaUnicodeString, err := LSAUnicodeStringFromString(s)
+	if err != nil {
+		panic(err)
+	}
+	return lsaUnicodeString
+}
+
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms722492(v=vs.85).aspx
 func LSAUnicodeStringFromString(s string) (LSAUnicodeString, error) {
 	utf16, err := syscall.UTF16FromString(s)
