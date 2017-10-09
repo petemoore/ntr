@@ -1,0 +1,56 @@
+language: go
+
+go:
+  # this is a lie - we will use 1.8.3 which isn't supported yet
+  # by downloading it later in "before_install" section
+  # we use 1.8.3 due to https://github.com/contester/runlib/issues/5#issuecomment-241419381
+  # which could have also been achieved via vendoring an older version, but for let's
+  # keep up-to-date with latest version
+  - 1.6
+
+env:
+  - "MY_GOOS=windows MY_GOARCH=amd64"
+  - "MY_GOOS=windows MY_GOARCH=386"
+
+before_install:
+  - curl -o go.tar.gz -sL https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz
+  - tar -C $HOME -xf go.tar.gz
+  - rm go.tar.gz
+  - export GOROOT="${HOME}/go"
+  - export PATH="${GOROOT}/bin:${PATH}"
+  - export GOOS="${MY_GOOS}"
+  - export GOARCH="${MY_GOARCH}"
+  - go version
+  - go env
+
+script:
+  - "export GOOS=${MY_GOOS}"
+  - "export GOARCH=${MY_GOARCH}"
+  - "go get -v -t ./..."
+
+before_deploy:
+  - "source .travis_rename_releases.sh"
+
+deploy:
+  api_key:
+    secure: DzfihszKy5rdEtvt+nRP7zV0JVICegJ6rEZ7RxQMxu1389r8QmnZnSkimN6krLf6wULrM5Z5X7tDFTfzLdsJoO5QJWV6pHZ7qJpnr6ZB6wRSoi0WT8FCQ+O071lIckRgeyiY5RTKEkPtUe3GroWDyd3/bvwM7azp1hIq5zkEEIKAsCTkBpwU5669nYlXZV2g8xLKS7QB8Mub59vdU+FGZIc4a8zbKf/jDS7E7mQ9/rqEEbJfga9w7jqjPEnB8TIiDnUsHXZvxUXhf0bI67WKFv1nkwPjfjMxHfYNagr4quo2MknQFIPEWiGrm/++7yo4RlzVAgVHVaSVsZBjNlmlu6X240HiUOJZRk/cGOa6ekisVqcaqde4Y3/xCGf2OHkv5QYQWy2ukX2BhN89xdJGDq9mE4UNCJv9zT/fIjw7MiYl6EqGQpSyCZCddpmJNFwPTpjeFo/6dSANrx3qN5hgh7qaGRgeNi2T9HXvpzg+kyTi0TQf47Bqo3iAkI9TmdFfrNDCek0xfZ8ELST0FyN2SEKZHqbVuhnNl6Luq9fEuzXBNMygvW69j3sqU9zP0pUa0mDQ2gpdFn29GTUdmimV2dUpT95FWYfwiHjdPX/BCVoNShMBjVfqkYOJF09JJJ7jScz9GcvMx9jj8KivM63Nqg3MYNAoVyoSXNPW+6xI+Vg=
+  file:
+    - "${RELEASE_FILE}"
+  provider: releases
+  skip_cleanup: true
+  on:
+    repo: taskcluster/ntr
+    tags: true
+
+notifications:
+  irc:
+    channels:
+      # encrpyted string was "irc.mozilla.org#taskcluster-bots" but encrpyted so users repo forks don't spam IRC
+      - secure: "StCfO2Z0wQyqdLnjLsFo44uTMp/6jXBGeC0ICRzoqI1J3knTxRWXz5Nos0nc843tQW1Ye07nAeAxALZdRndZ3JeK8ipxnA0hmr6EEHSXrZ+Od1s057ehLngvT5tyrwV8TnmRxcPZD1VmK0avqbnianQGFjvI7y6xDuGOmdDL1ulsCTxgUhPR/YBVDqu9z476xNkPFe8GTF7S6U2Y0LwdNMDzR4IX+mu2FnWXo2Dh8tFjkQYajxpVKYJIiciK/HcQLv8JKBenc6+HzTVD8+mGtG9OMInyEFQJRbWgjga6/9i7d0T7TD0qzrcO2pUS0dIjd+x2PqLlNmy5GQfU3L+EqoWSXNvExO1srO+icR7ylGxq8OC1c5SpDSxlFhQx0TrbRgvvVZEDSyslCM6f3MMX7O7BSVSFe2VQmuDm21MeK1DK/YefQ3baWxJ8OB7cRLgDtbIiExzs/tYDV97yIedY4k5VLoH0FsqLOOQfmta4GZXu0+2RAcnyv7MX7byRdPMF36poTo8gkqvOXmPI33GOu5ix7ZVm6F1OthlvYjT6A0HmEA7GRytFXipzE8t/JQfoqa6Dt8IIEpqkbN3OxGWFQ011PW147knv0YVVX+toPByiyFT/ghgZOz+FdTHwpnaf+ykMrMpiQzhftiyus4jC9rg8ROgjZg/2guhsTCTVeJY="
+    on_failure: always
+    on_success: change
+    template:
+      - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
+      - "Change view : %{compare_url}"
+      - "Build details : %{build_url}"
+      - "Commit message : %{commit_message}"
