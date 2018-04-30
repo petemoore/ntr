@@ -3,8 +3,8 @@ go:
   - 1.10.1
 
 env:
-  - "GOOS=windows GOARCH=amd64"
-  - "GOOS=windows GOARCH=386"
+  - "GIMME_OS=windows GIMME_ARCH=amd64"
+  - "GIMME_OS=windows GIMME_ARCH=386"
 
 script:
   - "go get -v -t ./..."
